@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { vendorAPI } from '../api';
-import { QRCodeSVG } from 'qrcode.react';
 
 function VendorDetail() {
   const { id } = useParams();
@@ -12,11 +11,7 @@ function VendorDetail() {
   const [error, setError] = useState(null);
   const [showQR, setShowQR] = useState(false);
 
-  useEffect(() => {
-    fetchVendor();
-  }, [id]);
-
-  const fetchVendor = async () => {
+  const fetchVendor = useCallback(async () => {
     try {
       const response = await vendorAPI.getById(id);
       setVendor(response.data);
@@ -25,7 +20,12 @@ function VendorDetail() {
       setError('Failed to load vendor details');
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchVendor();
+  }, [fetchVendor]);
+
 
   const fetchQR = async () => {
     try {

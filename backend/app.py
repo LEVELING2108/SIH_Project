@@ -62,18 +62,21 @@ def get_vendors():
     """Get all vendors with optional pagination"""
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
-    
+
     pagination = Vendor.query.paginate(page=page, per_page=per_page, error_out=False)
     vendors = pagination.items
-    
+
     result = []
     for vendor in vendors:
         vendor_data = vendor.to_dict()
-        insights = build_vendor_insights(**vendor_data)
+        # Map 'id' to 'vendor_id' for insights function
+        insights_data = {**vendor_data, 'vendor_id': vendor_data['id']}
+        del insights_data['id']
+        insights = build_vendor_insights(**insights_data)
         vendor_data['risk_score'] = insights.risk_score
         vendor_data['flags'] = insights.flags
         result.append(vendor_data)
-    
+
     return jsonify({
         "vendors": result,
         "total": pagination.total,
@@ -88,9 +91,12 @@ def get_vendor(vendor_id):
     vendor = Vendor.query.get(vendor_id)
     if not vendor:
         raise NotFound(f"Vendor with ID {vendor_id} not found")
-    
+
     vendor_data = vendor.to_dict()
-    insights = build_vendor_insights(**vendor_data)
+    # Map 'id' to 'vendor_id' for insights function
+    insights_data = {**vendor_data, 'vendor_id': vendor_data['id']}
+    del insights_data['id']
+    insights = build_vendor_insights(**insights_data)
     vendor_data.update({
         'risk_score': insights.risk_score,
         'flags': insights.flags,
@@ -98,7 +104,7 @@ def get_vendor(vendor_id):
         'summary': insights.summary,
         'keywords': insights.keywords
     })
-    
+
     return jsonify(vendor_data), 200
 
 
@@ -265,22 +271,25 @@ def download_qr(vendor_id):
 def scan_qr():
     """Scan/verify a QR code and return vendor details with AI insights"""
     data = request.get_json()
-    
+
     if not data or 'qr_data' not in data:
         raise BadRequest("No QR data provided")
-    
+
     vendor_id = data['qr_data'].strip()
-    
+
     vendor = Vendor.query.get(vendor_id)
     if not vendor:
         return jsonify({
             "found": False,
             "message": "No vendor found for this QR code"
         }), 404
-    
+
     vendor_data = vendor.to_dict()
-    insights = build_vendor_insights(**vendor_data)
-    
+    # Map 'id' to 'vendor_id' for insights function
+    insights_data = {**vendor_data, 'vendor_id': vendor_data['id']}
+    del insights_data['id']
+    insights = build_vendor_insights(**insights_data)
+
     return jsonify({
         "found": True,
         "vendor": {
@@ -300,28 +309,32 @@ def scan_qr():
 def get_analytics():
     """Get vendor analytics and statistics"""
     total_vendors = Vendor.query.count()
-    
+
     # Calculate risk distribution
     all_vendors = Vendor.query.all()
     risk_scores = []
     high_risk = 0
     medium_risk = 0
     low_risk = 0
-    
+
     for vendor in all_vendors:
-        insights = build_vendor_insights(**vendor.to_dict())
+        vendor_data = vendor.to_dict()
+        # Map 'id' to 'vendor_id' for insights function
+        insights_data = {**vendor_data, 'vendor_id': vendor_data['id']}
+        del insights_data['id']
+        insights = build_vendor_insights(**insights_data)
         score = insights.risk_score
         risk_scores.append(score)
-        
+
         if score >= 70:
             high_risk += 1
         elif score >= 40:
             medium_risk += 1
         else:
             low_risk += 1
-    
+
     avg_risk = sum(risk_scores) / len(risk_scores) if risk_scores else 0
-    
+
     return jsonify({
         "total_vendors": total_vendors,
         "risk_distribution": {

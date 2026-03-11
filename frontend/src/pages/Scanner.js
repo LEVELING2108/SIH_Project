@@ -7,7 +7,6 @@ function Scanner() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [scannerActive, setScannerActive] = useState(false);
-  const scannerRef = useRef(null);
   const html5QrcodeScannerRef = useRef(null);
 
   useEffect(() => {
