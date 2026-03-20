@@ -17,13 +17,6 @@ class Config:
         'sqlite:///vendors.db'
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    
-    # Pool configuration for production
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_size': 10,
-        'pool_recycle': 300,
-        'pool_pre_ping': True,
-    }
 
     # CORS settings - Should be specific domains in production
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:3000').split(',')
@@ -75,6 +68,14 @@ class ProductionConfig(Config):
         'DATABASE_URL',
         'postgresql://user:password@localhost:5432/vendors'
     )
+    
+    # Pool configuration for production-grade DB backends.
+    # Avoid applying these to SQLite (tests/dev) where the settings are invalid.
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_size': 10,
+        'pool_recycle': 300,
+        'pool_pre_ping': True,
+    }
     JWT_COOKIE_SECURE = True
     JWT_COOKIE_CSRF_PROTECT = True
     

@@ -17,10 +17,11 @@ import qrcode
 from PIL import Image
 
 from extensions import db, ma, jwt, limiter
-from models import Vendor, User
+from models import Vendor, User, TrackItem, Inspection
 from insights import build_vendor_insights
 from config import Config
 from auth import auth_bp, role_required
+from track_items_routes import track_items_bp
 
 
 def create_app(config_class=Config):
@@ -33,7 +34,6 @@ def create_app(config_class=Config):
     # CORS Configuration
     CORS(app, 
          origins=app.config.get('CORS_ORIGINS', ['http://localhost:3000']),
-         supports_headers=True,
          supports_credentials=True)
 
     # JWT Configuration
@@ -111,8 +111,9 @@ def create_app(config_class=Config):
             "service": "QR Vendor Verification API"
         }), 200
 
-    # Register auth blueprint
+    # Register blueprints
     app.register_blueprint(auth_bp)
+    app.register_blueprint(track_items_bp)
 
     # ============== Vendor API Endpoints ==============
 
@@ -188,12 +189,12 @@ def create_app(config_class=Config):
             raise BadRequest(f"Vendor with ID {data['id']} already exists")
 
         current_user_id = get_jwt_identity()
+        # Token subject (`get_jwt_identity()`) is stored as a string; cast for DB FK.
+        current_user_id_int = int(current_user_id)
 
         vendor = Vendor(
             id=data['id'],
             vendor_name=data.get('vendor_name'),
-            manufacture_date=datetime.strptime(data['manufacture_date'], '%Y-%m-%d').date() if data.get('manufacture_date') else None,
-            details=data.get('details'),
             contact_person=data.get('contact_person'),
             contact_email=data.get('contact_email'),
             contact_phone=data.get('contact_phone'),
@@ -204,7 +205,11 @@ def create_app(config_class=Config):
             country=data.get('country', 'India'),
             tax_id=data.get('tax_id'),
             bank_account=data.get('bank_account'),
-            created_by_id=current_user_id
+            vendor_code=data.get('vendor_code'),
+            certification_status=data.get('certification_status', 'pending'),
+            performance_rating=float(data.get('performance_rating', 0.0)) if data.get('performance_rating') else 0.0,
+            is_approved=data.get('is_approved', False),
+            created_by_id=current_user_id_int
         )
 
         db.session.add(vendor)
@@ -422,8 +427,9 @@ def create_app(config_class=Config):
             admin_user.set_password('Admin@123')  # Change this immediately!
             db.session.add(admin_user)
             db.session.commit()
-            print("✓ Default admin user created (username: admin, password: Admin@123)")
-            print("⚠ IMPORTANT: Change the default password immediately!")
+            # Use ASCII-only output to avoid Windows console encoding issues.
+            print("Default admin user created (username: admin, password: Admin@123)")
+            print("IMPORTANT: Change the default password immediately!")
 
     with app.app_context():
         db.create_all()

@@ -19,10 +19,14 @@ function Login({ onLogin }) {
 
     try {
       const response = await authAPI.login(formData.username, formData.password);
-      const { access_token } = response.data;
+      const { access_token, refresh_token, user } = response.data;
       
       // Store token and notify parent
-      onLogin(access_token);
+      onLogin({
+        access_token,
+        refresh_token,
+        role: user?.role || 'user',
+      });
       
       // Navigate to dashboard
       navigate('/');

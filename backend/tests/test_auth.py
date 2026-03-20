@@ -3,6 +3,7 @@ Tests for authentication endpoints
 """
 import pytest
 from models import User
+from extensions import db
 
 
 class TestAuth:

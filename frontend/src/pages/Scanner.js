@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode';
 import { scannerAPI } from '../api';
 
 function Scanner() {
@@ -8,6 +8,7 @@ function Scanner() {
   const [error, setError] = useState(null);
   const [scannerActive, setScannerActive] = useState(false);
   const html5QrcodeScannerRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     return () => {
@@ -84,6 +85,43 @@ function Scanner() {
     }
   };
 
+  const handleFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select a valid image file');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setScanResult(null);
+
+    try {
+      const html5QrCode = new Html5Qrcode('qr-reader');
+      const decodedText = await html5QrCode.scanFile(file, true);
+
+      console.log('QR Code from file:', decodedText);
+      await handleScan(decodedText);
+
+      // Clean up
+      html5QrCode.clear();
+    } catch (err) {
+      console.error('Error scanning file:', err);
+      setError('Failed to scan QR code from image. Please ensure the image contains a valid QR code.');
+      setLoading(false);
+    }
+
+    // Reset file input
+    event.target.value = '';
+  };
+
   const getRiskClass = (score) => {
     if (score >= 70) return 'risk-high';
     if (score >= 40) return 'risk-medium';
@@ -103,15 +141,23 @@ function Scanner() {
         <div className="card scanner-container">
           <div className="text-center">
             <p className="mb-3">
-              {scannerActive 
-                ? 'Point your camera at a vendor QR code' 
-                : 'Click the button below to start scanning'}
+              {scannerActive
+                ? 'Point your camera at a vendor QR code'
+                : 'Choose a scanning method'}
             </p>
-            
+
             {!scannerActive ? (
-              <button onClick={startScanner} className="btn btn-success btn-lg">
-                📷 Start Camera Scanner
-              </button>
+              <div className="flex gap-2 justify-center" style={{ flexWrap: 'wrap' }}>
+                <button onClick={startScanner} className="btn btn-success btn-lg">
+                  📷 Start Camera
+                </button>
+                <button onClick={handleFileSelect} className="btn btn-primary btn-lg">
+                  🖼️ Upload Image
+                </button>
+                <button onClick={handleManualEntry} className="btn btn-secondary btn-lg">
+                  ⌨️ Enter ID
+                </button>
+              </div>
             ) : (
               <div>
                 <div id="reader" className="scanner-viewfinder"></div>
@@ -120,12 +166,18 @@ function Scanner() {
                 </button>
               </div>
             )}
-            
-            <div className="mt-3">
-              <button onClick={handleManualEntry} className="btn btn-secondary">
-                ⌨️ Enter ID Manually
-              </button>
-            </div>
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleFileChange}
+            />
+
+            {/* Hidden div for file scanning */}
+            <div id="qr-reader" style={{ display: 'none' }}></div>
           </div>
         </div>
       )}

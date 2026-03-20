@@ -86,11 +86,12 @@ def register():
     
     # Create tokens
     access_token = create_access_token(
-        identity=user.id,
+        # flask-jwt-extended expects token "sub" to be a string.
+        identity=str(user.id),
         additional_claims={'role': user.role, 'username': user.username}
     )
     refresh_token = create_refresh_token(
-        identity=user.id,
+        identity=str(user.id),
         additional_claims={'role': user.role, 'username': user.username}
     )
     
@@ -130,12 +131,12 @@ def login():
     
     # Create tokens
     access_token = create_access_token(
-        identity=user.id,
+        identity=str(user.id),
         additional_claims={'role': user.role, 'username': user.username},
         expires_delta=timedelta(hours=1)
     )
     refresh_token = create_refresh_token(
-        identity=user.id,
+        identity=str(user.id),
         additional_claims={'role': user.role, 'username': user.username},
         expires_delta=timedelta(days=30)
     )
@@ -155,12 +156,12 @@ def refresh():
     current_user_id = get_jwt_identity()
     claims = get_jwt()
     
-    user = User.query.get(current_user_id)
+    user = User.query.get(int(current_user_id))
     if not user or not user.is_active:
         raise Unauthorized("User not found or inactive")
     
     access_token = create_access_token(
-        identity=current_user_id,
+        identity=str(current_user_id),
         additional_claims={'role': claims['role'], 'username': claims['username']},
         expires_delta=timedelta(hours=1)
     )
@@ -183,7 +184,7 @@ def logout():
 def get_current_user():
     """Get current logged-in user information"""
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    user = User.query.get(int(current_user_id))
     
     if not user:
         raise Unauthorized("User not found")
@@ -198,7 +199,7 @@ def get_current_user():
 def update_current_user():
     """Update current user profile"""
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    user = User.query.get(int(current_user_id))
     
     if not user:
         raise Unauthorized("User not found")
@@ -293,7 +294,7 @@ def delete_user(user_id):
     
     # Prevent self-deletion
     current_user_id = get_jwt_identity()
-    if user_id == current_user_id:
+    if user_id == int(current_user_id):
         raise BadRequest("Cannot delete your own account")
     
     db.session.delete(user)
