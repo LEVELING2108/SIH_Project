@@ -75,19 +75,20 @@ def _looks_like_bank_account(s: str) -> bool:
 
 def build_vendor_insights(
     vendor_id: str,
-    vendor_name: Optional[str],
-    manufacture_date: Optional[str],
-    details: Optional[str],
-    contact_person: Optional[str],
-    contact_email: Optional[str],
-    contact_phone: Optional[str],
-    address_line1: Optional[str],
-    city: Optional[str],
-    state: Optional[str],
-    postal_code: Optional[str],
-    country: Optional[str],
-    tax_id: Optional[str],
-    bank_account: Optional[str],
+    vendor_name: Optional[str] = None,
+    manufacture_date: Optional[str] = None,
+    details: Optional[str] = None,
+    contact_person: Optional[str] = None,
+    contact_email: Optional[str] = None,
+    contact_phone: Optional[str] = None,
+    address_line1: Optional[str] = None,
+    city: Optional[str] = None,
+    state: Optional[str] = None,
+    postal_code: Optional[str] = None,
+    country: Optional[str] = None,
+    tax_id: Optional[str] = None,
+    bank_account: Optional[str] = None,
+    **_ignored: object,
 ) -> InsightResult:
     """
     Analyze vendor data and generate risk insights.

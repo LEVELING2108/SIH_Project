@@ -5,6 +5,7 @@ import { vendorAPI } from '../api';
 function VendorDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const isAdmin = localStorage.getItem('role') === 'admin';
   const [vendor, setVendor] = useState(null);
   const [qrCode, setQrCode] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -107,9 +108,11 @@ function VendorDetail() {
           <Link to="/vendors" className="btn btn-secondary">
             ← Back
           </Link>
-          <button onClick={handleDelete} className="btn btn-danger">
-            Delete
-          </button>
+          {isAdmin && (
+            <button onClick={handleDelete} className="btn btn-danger">
+              Delete
+            </button>
+          )}
         </div>
       </div>
 

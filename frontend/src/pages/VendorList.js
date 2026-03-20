@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { vendorAPI } from '../api';
 
 function VendorList() {
+  const isAdmin = localStorage.getItem('role') === 'admin';
   const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -92,12 +93,14 @@ function VendorList() {
                 <Link to={`/vendors/${vendor.id}`} className="btn btn-secondary">
                   View
                 </Link>
-                <button
-                  onClick={() => handleDelete(vendor.id)}
-                  className="btn btn-danger"
-                >
-                  Delete
-                </button>
+                {isAdmin && (
+                  <button
+                    onClick={() => handleDelete(vendor.id)}
+                    className="btn btn-danger"
+                  >
+                    Delete
+                  </button>
+                )}
               </div>
             </div>
           ))}
