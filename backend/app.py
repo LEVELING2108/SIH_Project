@@ -259,14 +259,30 @@ def create_app(config_class=Config):
     @limiter.limit("10 per hour")
     def delete_vendor(vendor_id):
         """Delete a vendor (admin only)"""
-        vendor = Vendor.query.get(vendor_id)
-        if not vendor:
-            raise NotFound(f"Vendor with ID {vendor_id} not found")
+        try:
+            vendor = Vendor.query.get(vendor_id)
+            if not vendor:
+                raise NotFound(f"Vendor with ID {vendor_id} not found")
 
-        db.session.delete(vendor)
-        db.session.commit()
+            # First, delete all track items associated with this vendor
+            # (to handle foreign key constraints)
+            track_items = TrackItem.query.filter_by(vendor_id=vendor_id).all()
+            for item in track_items:
+                # Delete inspections first (they reference track items)
+                Inspection.query.filter_by(track_item_id=item.id).delete()
+                # Then delete the track item
+                db.session.delete(item)
+            
+            # Now delete the vendor
+            db.session.delete(vendor)
+            db.session.commit()
 
-        return jsonify({"message": "Vendor deleted successfully"}), 200
+            return jsonify({"message": "Vendor deleted successfully"}), 200
+        except Exception as e:
+            db.session.rollback()
+            import traceback
+            traceback.print_exc()
+            raise InternalServerError(f"Failed to delete vendor: {str(e)}")
 
     # ============== QR Code Endpoints ==============
 

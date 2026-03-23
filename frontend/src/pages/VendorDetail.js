@@ -58,7 +58,18 @@ function VendorDetail() {
         await vendorAPI.delete(id);
         navigate('/vendors');
       } catch (err) {
-        alert('Failed to delete vendor');
+        const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Failed to delete vendor. Make sure you are logged in as admin.';
+        const statusCode = err.response?.status;
+        
+        if (statusCode === 403) {
+          alert('❌ Access Denied: You need admin privileges to delete vendors.');
+        } else if (statusCode === 401) {
+          alert('❌ Session expired. Please login again.');
+          window.location.href = '/login';
+        } else {
+          alert(`❌ Error: ${errorMessage}`);
+        }
+        console.error('Delete error:', err);
       }
     }
   };
