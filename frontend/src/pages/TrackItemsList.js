@@ -21,12 +21,27 @@ function TrackItemsList() {
     sleeper: 'Sleeper'
   };
 
+  const itemIcons = {
+    elastic_rail_clip: '🔩',
+    rail_pad: '📏',
+    liner: '⭕',
+    sleeper: '🛤️'
+  };
+
   const statusTypes = {
     in_stock: 'In Stock',
     installed: 'Installed',
     in_service: 'In Service',
     defective: 'Defective',
     replaced: 'Replaced'
+  };
+
+  const statusIcons = {
+    in_stock: '📦',
+    installed: '🔧',
+    in_service: '✅',
+    defective: '⚠️',
+    replaced: '🔄'
   };
 
   useEffect(() => {
@@ -68,23 +83,40 @@ function TrackItemsList() {
   };
 
   if (loading && items.length === 0) {
-    return <div>Loading track items...</div>;
+    return (
+      <div className="text-center" style={{ padding: '4rem 2rem' }}>
+        <div className="spinner"></div>
+        <p style={{ color: 'var(--slate-600)', marginTop: '1rem' }}>Loading track items...</p>
+      </div>
+    );
   }
 
   return (
     <div>
       <div className="flex justify-between align-center mb-3">
-        <h1>Track Fittings & Components</h1>
+        <h1 style={{ 
+          fontSize: '2rem', 
+          fontWeight: '800',
+          background: 'var(--gradient-primary)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text'
+        }}>
+          🛤️ Track Fittings & Components
+        </h1>
         <button
           className="btn btn-primary"
           onClick={() => navigate('/track-items/add')}
         >
-          + Add Track Item
+          <span>➕</span> Add Track Item
         </button>
       </div>
 
       {/* Filters */}
       <div className="card mb-3">
+        <div className="card-header" style={{ fontSize: '1.1rem', marginBottom: '1.25rem' }}>
+          <span>🔍</span> Filters
+        </div>
         <div className="grid grid-3 gap-2">
           <div className="form-group">
             <label className="form-label">Item Type</label>
@@ -96,7 +128,7 @@ function TrackItemsList() {
             >
               <option value="">All Types</option>
               {Object.keys(itemTypes).map(key => (
-                <option key={key} value={key}>{itemTypes[key]}</option>
+                <option key={key} value={key}>{itemIcons[key]} {itemTypes[key]}</option>
               ))}
             </select>
           </div>
@@ -111,7 +143,7 @@ function TrackItemsList() {
             >
               <option value="">All Status</option>
               {Object.keys(statusTypes).map(key => (
-                <option key={key} value={key}>{statusTypes[key]}</option>
+                <option key={key} value={key}>{statusIcons[key]} {statusTypes[key]}</option>
               ))}
             </select>
           </div>
@@ -124,14 +156,16 @@ function TrackItemsList() {
                 setPage(1);
               }}
             >
-              Clear Filters
+              <span>🧹</span> Clear Filters
             </button>
           </div>
         </div>
       </div>
 
       {error && (
-        <div className="alert alert-danger mb-3">{error}</div>
+        <div className="alert alert-danger mb-3">
+          <span>⚠️</span> {error}
+        </div>
       )}
 
       {/* Track Items Table */}
@@ -154,51 +188,92 @@ function TrackItemsList() {
             <tbody>
               {items.length === 0 ? (
                 <tr>
-                  <td colSpan="9" style={{ textAlign: 'center', padding: '2rem' }}>
-                    No track items found. Add your first track item to get started.
+                  <td colSpan="9" style={{ textAlign: 'center', padding: '3rem' }}>
+                    <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📭</span>
+                    <p style={{ color: 'var(--slate-500)', fontSize: '1.1rem' }}>No track items found</p>
+                    <button 
+                      className="btn btn-primary" 
+                      style={{ marginTop: '1rem' }}
+                      onClick={() => navigate('/track-items/add')}
+                    >
+                      <span>➕</span> Add Your First Track Item
+                    </button>
                   </td>
                 </tr>
               ) : (
                 items.map((item) => (
                   <tr key={item.id}>
                     <td>
-                      <strong>{item.lot_number}</strong>
-                      <br />
-                      <small style={{ color: '#888' }}>{item.id}</small>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ fontSize: '1.25rem' }}>🏷️</span>
+                        <div>
+                          <div style={{ fontWeight: '600', color: 'var(--slate-800)' }}>{item.lot_number}</div>
+                          <small style={{ color: 'var(--slate-400)', fontSize: '0.75rem' }}>{item.id}</small>
+                        </div>
+                      </div>
                     </td>
-                    <td>{itemTypes[item.item_type] || item.item_type}</td>
                     <td>
-                      {item.vendor_name || item.vendor_id}
-                      <br />
-                      <small style={{ color: '#888' }}>{item.vendor_id}</small>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span>{itemIcons[item.item_type] || '📦'}</span>
+                        <span>{itemTypes[item.item_type] || item.item_type}</span>
+                      </div>
                     </td>
-                    <td>{item.quantity?.toLocaleString()}</td>
-                    <td>{item.manufacture_date ? new Date(item.manufacture_date).toLocaleDateString() : '-'}</td>
+                    <td>
+                      <div>
+                        <div style={{ fontWeight: '500', color: 'var(--slate-700)' }}>
+                          {item.vendor_name || item.vendor_id}
+                        </div>
+                        <small style={{ color: 'var(--slate-400)', fontSize: '0.75rem' }}>{item.vendor_id}</small>
+                      </div>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span>📊</span>
+                        <span style={{ fontWeight: '600' }}>{item.quantity?.toLocaleString()}</span>
+                      </div>
+                    </td>
+                    <td style={{ color: 'var(--slate-600)' }}>
+                      {item.manufacture_date ? new Date(item.manufacture_date).toLocaleDateString() : '-'}
+                    </td>
                     <td>
                       <span className={`badge ${getStatusBadgeClass(item.status)}`}>
+                        <span style={{ marginRight: '0.25rem' }}>{statusIcons[item.status] || '📌'}</span>
                         {statusTypes[item.status] || item.status}
                       </span>
                     </td>
                     <td>
-                      {item.section_name || '-'}
-                      {item.division && <><br /><small>{item.division}</small></>}
+                      {item.section_name ? (
+                        <div>
+                          <div style={{ fontWeight: '500', color: 'var(--slate-700)' }}>{item.section_name}</div>
+                          {item.division && <small style={{ color: 'var(--slate-400)' }}>{item.division}</small>}
+                        </div>
+                      ) : (
+                        <span style={{ color: 'var(--slate-400)' }}>-</span>
+                      )}
                     </td>
                     <td>
                       {item.warranty_expiry_date ? (
-                        <>
-                          {new Date(item.warranty_expiry_date).toLocaleDateString()}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span>
+                            {new Date(item.warranty_expiry_date).toLocaleDateString()}
+                          </span>
                           {new Date(item.warranty_expiry_date) < new Date() && (
-                            <span className="badge badge-danger ml-1">Expired</span>
+                            <span className="badge badge-danger">
+                              <span>⚠️</span> Expired
+                            </span>
                           )}
-                        </>
-                      ) : '-'}
+                        </div>
+                      ) : (
+                        <span style={{ color: 'var(--slate-400)' }}>-</span>
+                      )}
                     </td>
                     <td>
                       <button
                         className="btn btn-sm btn-primary"
                         onClick={() => navigate(`/track-items/${item.id}`)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}
                       >
-                        View
+                        <span>👁️</span> View
                       </button>
                     </td>
                   </tr>
@@ -215,25 +290,43 @@ function TrackItemsList() {
               className="btn btn-secondary"
               disabled={page === 1}
               onClick={() => setPage(page - 1)}
+              style={{
+                cursor: page === 1 ? 'not-allowed' : 'pointer',
+                opacity: page === 1 ? 0.5 : 1
+              }}
             >
-              Previous
+              <span>←</span> Previous
             </button>
-            <span className="flex align-center" style={{ padding: '0 1rem' }}>
+            <span style={{ 
+              padding: '0.5rem 1.5rem', 
+              background: 'rgba(255, 255, 255, 0.9)',
+              borderRadius: 'var(--radius-xl)',
+              color: 'var(--slate-600)',
+              fontWeight: '600',
+              boxShadow: 'var(--shadow-sm)',
+              display: 'flex',
+              alignItems: 'center'
+            }}>
               Page {page} of {totalPages}
             </span>
             <button
               className="btn btn-secondary"
               disabled={page === totalPages}
               onClick={() => setPage(page + 1)}
+              style={{
+                cursor: page === totalPages ? 'not-allowed' : 'pointer',
+                opacity: page === totalPages ? 0.5 : 1
+              }}
             >
-              Next
+              Next <span>→</span>
             </button>
           </div>
         )}
       </div>
 
-      <div className="alert alert-info mt-3">
-        <strong>📊 Total Items:</strong> {items.length} track fitting items displayed
+      <div className="alert alert-info mt-3" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <span>📊</span> 
+        <strong>Total Items:</strong> {items.length} track fitting items displayed
       </div>
     </div>
   );

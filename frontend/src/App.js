@@ -15,6 +15,7 @@ import AddTrackItem from './pages/AddTrackItem';
 import TrackItemDetail from './pages/TrackItemDetail';
 import VendorPerformance from './pages/VendorPerformance';
 import AddInspection from './pages/AddInspection';
+import Profile from './pages/Profile';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('access_token'));
@@ -63,12 +64,15 @@ function App() {
 
             {/* Scanner */}
             <Route path="/scan" element={isAuthenticated ? <Scanner /> : <Navigate to="/login" replace />} />
-            
+
             {/* Analytics */}
             <Route path="/performance" element={isAuthenticated ? <VendorPerformance /> : <Navigate to="/login" replace />} />
-            
+
             {/* Inspection Routes */}
             <Route path="/track-items/:id/inspections/add" element={isAuthenticated ? <AddInspection /> : <Navigate to="/login" replace />} />
+            
+            {/* Profile */}
+            <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" replace />} />
           </Routes>
         </main>
       </div>
@@ -88,20 +92,46 @@ function Navbar({ isAuthenticated, onLogout }) {
     <nav className="navbar">
       <div className="navbar-content">
         <Link to="/" className="navbar-brand">
-          <span>🚂</span> Railway Track QR System
+          <span>🚂</span> 
+          <span>RailTrack Pro</span>
         </Link>
         {isAuthenticated && (
           <>
             <ul className="navbar-nav">
-              <li><Link to="/" className={location.pathname === '/' ? 'nav-link active' : 'nav-link'}>Dashboard</Link></li>
-              <li><Link to="/track-items" className={location.pathname.startsWith('/track-items') ? 'nav-link active' : 'nav-link'}>Track Items</Link></li>
-              <li><Link to="/vendors" className={location.pathname.startsWith('/vendors') ? 'nav-link active' : 'nav-link'}>Vendors</Link></li>
-              <li><Link to="/scan" className={location.pathname === '/scan' ? 'nav-link active' : 'nav-link'}>Scan QR</Link></li>
-              <li><Link to="/performance" className={location.pathname === '/performance' ? 'nav-link active' : 'nav-link'}>Performance</Link></li>
+              <li>
+                <Link to="/" className={location.pathname === '/' ? 'nav-link active' : 'nav-link'}>
+                  <span>📊</span> Dashboard
+                </Link>
+              </li>
+              <li>
+                <Link to="/track-items" className={location.pathname.startsWith('/track-items') ? 'nav-link active' : 'nav-link'}>
+                  <span>🔧</span> Track Items
+                </Link>
+              </li>
+              <li>
+                <Link to="/vendors" className={location.pathname.startsWith('/vendors') ? 'nav-link active' : 'nav-link'}>
+                  <span>👥</span> Vendors
+                </Link>
+              </li>
+              <li>
+                <Link to="/scan" className={location.pathname === '/scan' ? 'nav-link active' : 'nav-link'}>
+                  <span>📷</span> Scan QR
+                </Link>
+              </li>
+              <li>
+                <Link to="/performance" className={location.pathname === '/performance' ? 'nav-link active' : 'nav-link'}>
+                  <span>📈</span> Performance
+                </Link>
+              </li>
+              <li>
+                <Link to="/profile" className={location.pathname === '/profile' ? 'nav-link active' : 'nav-link'}>
+                  <span>👤</span> Profile
+                </Link>
+              </li>
             </ul>
-            <div style={{ padding: '1rem', borderTop: '1px solid #e1e8ed' }}>
-              <button onClick={handleLogout} className="btn btn-logout" style={{ width: '100%' }}>
-                Logout
+            <div style={{ padding: '1.25rem 1rem', borderTop: '1px solid rgba(226, 232, 240, 0.8)' }}>
+              <button onClick={handleLogout} className="btn btn-logout">
+                <span>🚪</span> Logout
               </button>
             </div>
           </>

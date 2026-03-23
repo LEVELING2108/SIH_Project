@@ -20,15 +20,13 @@ function Login({ onLogin }) {
     try {
       const response = await authAPI.login(formData.username, formData.password);
       const { access_token, refresh_token, user } = response.data;
-      
-      // Store token and notify parent
+
       onLogin({
         access_token,
         refresh_token,
         role: user?.role || 'user',
       });
-      
-      // Navigate to dashboard
+
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
@@ -40,14 +38,23 @@ function Login({ onLogin }) {
   return (
     <div className="login-container">
       <div className="login-card">
-        <h1 className="login-title">🔐 VendorVerify</h1>
-        <h2>Login</h2>
+        <div style={{ textAlign: 'center', marginBottom: '0.5rem' }}>
+          <span style={{ fontSize: '4rem', display: 'block', marginBottom: '1rem', filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1))' }}>🔐</span>
+        </div>
+        <h1 className="login-title">VendorVerify</h1>
+        <h2>Sign in to your account</h2>
 
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error && (
+          <div className="alert alert-danger" style={{ marginBottom: '1.5rem' }}>
+            <span>⚠️</span> {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="username">
+              <span>👤</span> Username
+            </label>
             <input
               type="text"
               id="username"
@@ -57,11 +64,14 @@ function Login({ onLogin }) {
               placeholder="Enter your username"
               required
               disabled={loading}
+              autoComplete="username"
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">
+              <span>🔑</span> Password
+            </label>
             <input
               type="password"
               id="password"
@@ -71,16 +81,38 @@ function Login({ onLogin }) {
               placeholder="Enter your password"
               required
               disabled={loading}
+              autoComplete="current-password"
             />
           </div>
 
-          <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-            {loading ? 'Logging in...' : 'Login'}
+          <button 
+            type="submit" 
+            className="btn btn-primary btn-block" 
+            disabled={loading}
+            style={{
+              background: loading ? 'var(--slate-400)' : 'var(--gradient-ocean)',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.7 : 1
+            }}
+          >
+            {loading ? (
+              <>
+                <span className="spinner" style={{ width: '20px', height: '20px', borderWidth: '2px', marginRight: '0.5rem', display: 'inline-block', verticalAlign: 'middle' }}></span>
+                Signing in...
+              </>
+            ) : (
+              <>
+                <span>🚀</span> Sign In
+              </>
+            )}
           </button>
         </form>
 
         <div className="login-footer">
-          <p className="text-muted">Default: <strong>admin / Admin@123</strong></p>
+          <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--slate-600)' }}>
+            <span style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600' }}>💡 Demo Credentials</span>
+            Username: <strong style={{ color: 'var(--primary-600)' }}>admin</strong> / Password: <strong style={{ color: 'var(--primary-600)' }}>Admin@123</strong>
+          </p>
         </div>
       </div>
     </div>
