@@ -1,6 +1,6 @@
-# ⚡ Quick Start Guide
+# ⚡ Quick Start Guide - RailTrack Pro
 
-Get your enhanced Vendor Verification System running in 5 minutes!
+Get your Railway Track Fittings Management System running in 5 minutes!
 
 ---
 
@@ -24,6 +24,7 @@ npm install
 
 ```bash
 # Backend - Copy and edit .env
+cd backend
 copy .env.example .env  # Windows
 
 # Generate secure keys
@@ -31,6 +32,15 @@ python -c "import secrets; print('SECRET_KEY:', secrets.token_hex(32))"
 python -c "import secrets; print('JWT_SECRET_KEY:', secrets.token_hex(32))"
 
 # Add these to .env file
+```
+
+Edit `backend/.env`:
+```env
+SECRET_KEY=your-secret-key-here
+JWT_SECRET_KEY=your-jwt-secret-here
+DATABASE_URL=sqlite:///vendors.db
+CORS_ORIGINS=http://localhost:3000
+RATELIMIT_ENABLED=false
 ```
 
 ### Step 3: Run Application
@@ -66,6 +76,11 @@ docker-compose up --build
 # Access:
 # Frontend: http://localhost:3000
 # Backend: http://localhost:5000
+```
+
+**Stop services:**
+```bash
+docker-compose down
 ```
 
 ---
@@ -112,7 +127,15 @@ curl -X POST http://localhost:5000/api/auth/login \
   }'
 ```
 
-### Create Vendor (with token)
+Response:
+```json
+{
+  "access_token": "eyJ...",
+  "refresh_token": "eyJ..."
+}
+```
+
+### Create Vendor
 ```bash
 curl -X POST http://localhost:5000/api/vendors \
   -H "Content-Type: application/json" \
@@ -120,13 +143,65 @@ curl -X POST http://localhost:5000/api/vendors \
   -d '{
     "id": "VENDOR001",
     "vendor_name": "Test Vendor",
-    "contact_email": "vendor@example.com"
+    "contact_email": "vendor@example.com",
+    "vendor_code": "V001"
+  }'
+```
+
+### Create Track Item
+```bash
+curl -X POST http://localhost:5000/api/track-items \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "id": "ITEM001",
+    "item_type": "elastic_rail_clip",
+    "lot_number": "LOT2024001",
+    "vendor_id": "VENDOR001",
+    "quantity": 1000,
+    "manufacture_date": "2024-01-15",
+    "item_type": "erc"
   }'
 ```
 
 ### Get Vendors
 ```bash
 curl -X GET http://localhost:5000/api/vendors \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Get Track Items
+```bash
+curl -X GET http://localhost:5000/api/track-items \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Generate QR Code
+```bash
+curl -X GET http://localhost:5000/api/track-items/ITEM001/qr \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Scan QR Code
+```bash
+curl -X POST http://localhost:5000/api/scan \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "qr_data": "VENDOR001"
+  }'
+```
+
+### Get Analytics
+```bash
+curl -X GET http://localhost:5000/api/track-items/analytics \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Seed Sample Data
+```bash
+curl -X POST http://localhost:5000/api/seed \
+  -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
@@ -141,8 +216,11 @@ curl -X GET http://localhost:5000/api/vendors \
 | `backend/app.py` | Main Flask application |
 | `backend/auth.py` | Authentication routes |
 | `backend/models.py` | Database models |
+| `backend/track_items_routes.py` | Track items endpoints |
 | `backend/validators.py` | Input validation |
 | `docker-compose.yml` | Docker configuration |
+| `frontend/src/App.js` | Main React component |
+| `frontend/src/api.js` | API client |
 
 ---
 
@@ -155,6 +233,9 @@ pip install -r requirements.txt
 
 # Check port
 netstat -ano | findstr :5000
+
+# Check logs
+python app.py 2>&1 | tee app.log
 ```
 
 ### Frontend won't start
@@ -162,6 +243,9 @@ netstat -ano | findstr :5000
 # Clear cache
 rm -rf node_modules package-lock.json
 npm install
+
+# Check Node version
+node --version  # Should be 18+
 ```
 
 ### Database errors
@@ -175,13 +259,34 @@ python app.py
 ```bash
 # Reinstall test dependencies
 pip install pytest pytest-flask pytest-cov
+
+# Run tests with verbose output
+pytest -v
+```
+
+### Can't login
+```bash
+# Check credentials
+# Username: admin
+# Password: Admin@123 (default)
+
+# Reset admin password (if you have database access)
+# Delete users table and restart app
+```
+
+### CORS errors
+```bash
+# Check backend .env
+CORS_ORIGINS=http://localhost:3000
+
+# Restart backend
 ```
 
 ---
 
 ## 📊 Environment Variables
 
-### Minimum Required (.env)
+### Minimum Required (backend/.env)
 
 ```env
 # Flask
@@ -194,6 +299,15 @@ DATABASE_URL=sqlite:///vendors.db
 
 # CORS
 CORS_ORIGINS=http://localhost:3000
+
+# Rate Limiting (disable for development)
+RATELIMIT_ENABLED=false
+```
+
+### Frontend (frontend/.env)
+
+```env
+REACT_APP_API_URL=http://localhost:5000/api
 ```
 
 ---
@@ -202,33 +316,95 @@ CORS_ORIGINS=http://localhost:3000
 
 After getting it running:
 
-1. ✅ **Change default password**
-2. ✅ **Generate secure keys**
-3. ✅ **Run tests**
-4. ✅ **Read SECURITY.md**
-5. ✅ **Configure CORS for your domain**
+1. ✅ **Change default password** (Profile page)
+2. ✅ **Generate secure keys** (use secrets.token_hex)
+3. ✅ **Run tests** (`pytest --cov=.`)
+4. ✅ **Read SECURITY.md** (security best practices)
+5. ✅ **Configure CORS** (for your domain)
+6. ✅ **Seed sample data** (optional, via API)
+7. ✅ **Explore features** (vendors, track items, inspections)
 
 ---
 
 ## 📚 Full Documentation
 
-- [Setup Guide](SETUP.md) - Complete setup
-- [Security](SECURITY.md) - Security best practices
-- [Deployment](DEPLOYMENT.md) - Production deployment
-- [API Docs](backend/app.py) - API endpoints
+- [README.md](README.md) - Project overview
+- [SETUP.md](SETUP.md) - Complete setup guide
+- [SECURITY.md](SECURITY.md) - Security best practices
+- [DEPLOYMENT.md](DEPLOYMENT.md) - Production deployment
+- [CHANGELOG.md](CHANGELOG.md) - Version history
+- [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) - Implementation details
+
+---
+
+## 🎓 Quick Feature Tour
+
+### Dashboard
+- View analytics and statistics
+- Risk distribution chart
+- Total vendors and track items
+- Recent activity
+
+### Track Items
+- List all track items (ERC, Rail Pads, Liners, Sleepers)
+- Add new track items with specifications
+- View item details with inspection history
+- Generate and download QR codes
+- Scan QR codes in the field
+
+### Vendors
+- List all vendors/manufacturers
+- Add new vendors
+- View vendor details and performance
+- Compare vendor performance
+
+### Inspections
+- Create inspections for track items
+- Record quality grades and defects
+- Track inspection history
+- Schedule next inspections
+
+### Scanner
+- Camera-based QR code scanning
+- Instant verification with AI insights
+- Risk scores and flags
+- Recommendations
 
 ---
 
 ## 🆘 Need Help?
 
-1. Check logs: `docker-compose logs`
-2. Review error messages
+1. Check logs: `docker-compose logs` or `backend/logs/`
+2. Review error messages carefully
 3. Test with Postman/curl
 4. Read documentation
 5. Check test coverage
 
+### Useful Commands
+
+```bash
+# View logs
+docker-compose logs -f
+
+# Restart services
+docker-compose restart
+
+# Check status
+docker-compose ps
+
+# Run tests
+pytest --cov=.
+
+# Build frontend
+cd frontend && npm run build
+
+# Access database
+docker-compose exec db psql -U postgres -d vendors
+```
+
 ---
 
-**Happy Coding! 🚀**
+**Happy Coding! 🚂**
 
-*Last Updated: March 17, 2024*
+*Last Updated: March 2026*
+*Version: 2.0.0*
