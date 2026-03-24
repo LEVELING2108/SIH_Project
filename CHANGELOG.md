@@ -1,250 +1,319 @@
 # 📋 Changelog
 
-All notable changes to the QR-Based Vendor Verification System.
+All notable changes to the RailTrack Pro Railway Track Fittings Management System.
 
-## [2.0.0] - 2024-03-17
+## [2.0.0] - 2026-03-24
 
-### 🎉 Major Enhancements
+### 🎉 Major Enhancements - Railway Track Fittings Management
 
-#### Security Features (NEW)
-- 🔐 **JWT Authentication System**
-  - User registration and login endpoints
-  - Access and refresh token management
-  - Token expiration and renewal
-  - Password hashing with bcrypt (12 salt rounds)
-  - Role-based access control (Admin, User, Viewer)
+#### Track Items Management System (NEW)
+- 🔧 **Track Items CRUD Operations**
+  - Create, read, update, delete track items
+  - Support for multiple item types: ERC, Rail Pads, Liners, Sleepers
+  - Lot/batch tracking with unique identifiers
+  - Quantity and date tracking (manufacture, supply, installation)
+  - Warranty information and expiry tracking
+  - Location tracking (section, division, zone)
+  - Performance status monitoring (good/average/poor/failed)
+  - Defect and replacement counts
 
-- 🛡️ **Rate Limiting**
-  - Configurable rate limits per endpoint
-  - Default: 200 requests/day, 50 requests/hour
-  - Stricter limits on auth endpoints (5/min for login)
-  - Redis-backed rate limiting for production
+- 📊 **Track Item Analytics**
+  - Analytics by item type, zone, and performance status
+  - Defect tracking and trends
+  - Replacement statistics
+  - Pass/fail rates by inspection type
 
-- ✅ **Input Validation & Sanitization**
-  - Email format validation
-  - Phone number validation
-  - GST/PAN number format validation
-  - Bank account validation
-  - Indian PIN code validation
-  - HTML sanitization
-  - SQL injection prevention
-  - XSS protection
+#### Multi-Stage Inspection System (NEW)
+- 🔍 **Inspection Management**
+  - Manufacturing inspections (pre-dispatch)
+  - Supply inspections (at delivery)
+  - Installation inspections (post-installation)
+  - Periodic inspections (scheduled maintenance)
+  - Defect inspections (unscheduled failures)
+  - Quality grading (A/B/C/D/F)
+  - Defect recording (JSON)
+  - Action tracking
+  - Next inspection scheduling
 
-- 🔒 **Security Headers**
-  - X-Frame-Options (SAMEORIGIN)
-  - X-Content-Type-Options (nosniff)
-  - X-XSS-Protection
-  - Strict-Transport-Security
-  - Content-Security-Policy
+- 📝 **Inspection Features**
+  - Inspector details and designation
+  - Document references (JSON)
+  - Remarks and notes
+  - Pass/fail/conditional status
+  - Inspection history per track item
 
-#### Testing Infrastructure (NEW)
-- 🧪 **Pytest Test Suite**
-  - Authentication tests (login, register, refresh)
-  - Vendor CRUD operation tests
-  - QR code generation and scanning tests
-  - Analytics endpoint tests
-  - Test fixtures and factories
-  - Coverage reporting (target: 80%+)
+#### Enhanced Vendor Management
+- 🏭 **Railway-Specific Vendor Fields**
+  - Vendor code (UDM portal)
+  - Certification status (approved/pending/blacklisted)
+  - Performance rating (0-5 scale)
+  - Approval workflow
+  - Approval date tracking
 
-#### Database Improvements
-- 📊 **Enhanced Models**
-  - User model for authentication
-  - Vendor model with audit fields (created_by, timestamps)
-  - Database indexes for performance
-  - Foreign key relationships
+- 📈 **Vendor Performance Comparison**
+  - Side-by-side vendor comparison
+  - Risk score ranking
+  - Track item quality metrics
+  - Defect rates by vendor
+  - Inspection pass rates
 
-#### Production Deployment
-- 🐳 **Docker Improvements**
-  - Multi-stage production Dockerfile
-  - Smaller image size
-  - Non-root user for security
-  - Health checks
-  - Production-ready Gunicorn configuration
+#### Enhanced Database Schema
+- 🗄️ **New Models**
+  - `TrackItem` model with comprehensive fields
+  - `Inspection` model for multi-stage inspections
+  - Enhanced `Vendor` model with railway-specific fields
+  - Custom `AcceptsDateString` type for flexible date handling
 
-- 🌐 **Nginx Reverse Proxy**
-  - SSL/TLS configuration
-  - Rate limiting at proxy level
-  - Security headers
-  - HTTP to HTTPS redirect
-  - WebSocket support
+- 📊 **Database Improvements**
+  - Foreign key relationships with cascade delete
+  - Indexes for performance optimization
+  - Audit fields (created_by, timestamps)
+  - JSON fields for specifications and defects
 
-- 📦 **Production Docker Compose**
-  - PostgreSQL database
-  - Redis for rate limiting
-  - Nginx reverse proxy
-  - Health checks
-  - Persistent volumes
+#### Enhanced API Endpoints
+- 📡 **New Endpoints**
+  - `GET /api/track-items` - List all track items
+  - `GET /api/track-items/:id` - Get track item details
+  - `POST /api/track-items` - Create track item
+  - `PUT /api/track-items/:id` - Update track item
+  - `DELETE /api/track-items/:id` - Delete track item
+  - `GET /api/track-items/:id/qr` - Generate QR for track item
+  - `GET /api/track-items/:id/qr/download` - Download QR
+  - `GET /api/track-items/analytics` - Get track items analytics
+  - `GET /api/track-items/exceptions` - Get exceptions
+  - `POST /api/scan-track-item` - Scan track item QR
+  - `GET /api/track-items/:id/inspections` - List inspections
+  - `POST /api/track-items/:id/inspections` - Create inspection
+  - `GET /api/vendors/performance` - Vendor performance comparison
+  - `POST /api/seed` - Seed sample data
 
-#### Configuration
-- ⚙️ **Enhanced Configuration**
-  - Environment-based configuration
-  - Development, Testing, Production configs
-  - Secure secret key generation
-  - Database pool configuration
-  - JWT token expiration settings
+#### Frontend Enhancements
+- 🎨 **New Pages**
+  - `TrackItemsList.js` - Track items listing with filters
+  - `AddTrackItem.js` - Add new track item form
+  - `TrackItemDetail.js` - Track item details with inspection history
+  - `VendorPerformance.js` - Vendor performance comparison
+  - `AddInspection.js` - Create inspection form
+  - `Profile.js` - User profile and password change
 
-#### Documentation
-- 📚 **New Documentation**
-  - SETUP.md - Complete setup guide
-  - SECURITY.md - Security best practices
-  - CHANGELOG.md - This file
-  - Updated README.md with new features
-  - Updated DEPLOYMENT.md
+- 🔧 **Frontend Improvements**
+  - Enhanced navigation with track items menu
+  - QR code display for track items
+  - Inspection history timeline
+  - Performance charts and metrics
+  - Responsive design improvements
+
+#### AI Risk Assessment Enhancements
+- 🤖 **Enhanced Risk Analysis**
+  - Track item risk scoring
+  - Warranty expiry alerts
+  - Defect rate analysis
+  - Inspection failure patterns
+  - Vendor performance trends
+
+#### Seed Data System
+- 📦 **Sample Data Generator**
+  - Sample vendors with railway context
+  - Sample track items (ERC, Rail Pads, Liners, Sleepers)
+  - Sample inspections with various statuses
+  - Realistic data for testing
 
 ### 🔧 Technical Changes
 
 #### Backend Changes
 - **New Files:**
-  - `backend/auth.py` - Authentication routes
-  - `backend/validators.py` - Input validation utilities
-  - `backend/tests/conftest.py` - Test fixtures
-  - `backend/tests/test_auth.py` - Auth tests
-  - `backend/tests/test_vendors.py` - Vendor tests
-  - `backend/tests/test_qr.py` - QR tests
-  - `backend/Dockerfile.prod` - Production Dockerfile
-  - `backend/pytest.ini` - Pytest configuration
-  - `backend/.coveragerc` - Coverage configuration
+  - `backend/track_items_routes.py` - Track items endpoints
+  - `backend/seed_data.py` - Sample data seeder
+  - `backend/models.py` - Enhanced with TrackItem and Inspection models
+  - `backend/tests/test_qr.py` - QR and analytics tests
 
 - **Modified Files:**
-  - `backend/app.py` - Added JWT, rate limiting, auth
-  - `backend/models.py` - Added User model, audit fields
-  - `backend/config.py` - Enhanced configuration
-  - `backend/extensions.py` - Added JWT, Limiter
-  - `backend/requirements.txt` - New dependencies
+  - `backend/app.py` - Added track items routes, seed endpoint, performance comparison
+  - `backend/models.py` - Added TrackItem, Inspection models; enhanced Vendor model
+  - `backend/requirements.txt` - Updated dependencies
 
 #### Frontend Changes
-- **Note:** Frontend integration with auth pending
-- Current frontend works but needs auth integration
-
-#### DevOps Changes
 - **New Files:**
-  - `docker-compose.prod.yml` - Production compose
-  - `nginx/nginx.conf` - Nginx configuration
-  - `.env.prod.example` - Production env template
+  - `frontend/src/pages/TrackItemsList.js`
+  - `frontend/src/pages/AddTrackItem.js`
+  - `frontend/src/pages/TrackItemDetail.js`
+  - `frontend/src/pages/VendorPerformance.js`
+  - `frontend/src/pages/AddInspection.js`
+  - `frontend/src/pages/Profile.js`
+
+- **Modified Files:**
+  - `frontend/src/App.js` - Added track items routes and navigation
+  - `frontend/src/api.js` - Added trackItemsAPI, inspectionsAPI, performanceAPI
+
+#### API Client Improvements
+- **Enhanced API Client**
+  - Automatic token refresh on 401
+  - Refresh token interceptor
+  - Better error handling
+  - Axios interceptors for auth
 
 ### 📦 Dependencies Added
 
 #### Backend
-- Flask-JWT-Extended==4.6.0
-- Flask-Limiter==3.5.0
-- bcrypt==4.1.2
-- email-validator==2.1.0
-- pytest==7.4.3
-- pytest-flask==1.3.0
-- pytest-cov==4.1.0
+- No new major dependencies (using existing Flask ecosystem)
+
+#### Frontend
+- Already includes all necessary dependencies
 
 ### ⚠️ Breaking Changes
 
+#### Database Schema Changes
+- **New tables:**
+  - `track_items` - Track fittings inventory
+  - `inspections` - Multi-stage inspection records
+
+- **Modified tables:**
+  - `vendor_data` - Added railway-specific fields
+    - `vendor_code` - Unique vendor code
+    - `certification_status` - Approval status
+    - `performance_rating` - 0-5 rating
+    - `is_approved` - Approval flag
+    - `approval_date` - Approval date
+
 #### API Changes
-- **All vendor endpoints now require authentication**
-  - GET `/api/vendors` - Now requires JWT token
-  - POST `/api/vendors` - Now requires JWT token
-  - DELETE `/api/vendors/:id` - Now requires admin role
-  
-- **New authentication endpoints:**
-  - POST `/api/auth/register`
-  - POST `/api/auth/login`
-  - POST `/api/auth/refresh`
-  - POST `/api/auth/logout`
-  - GET `/api/auth/me`
-  - PUT `/api/auth/me`
-
-#### Database Changes
-- **New table:** `users` - User authentication
-- **Modified table:** `vendor_data`
-  - Added `created_by_id` column
-  - Added indexes for performance
-
-#### Configuration Changes
-- **Required environment variables:**
-  - `JWT_SECRET_KEY` - New required variable
-  - `SECRET_KEY` - Must be strong random value
-  - `CORS_ORIGINS` - Should be specific domains
+- **New endpoints** (non-breaking additions)
+- **Enhanced existing endpoints** with additional fields
+- **Vendor response** now includes railway-specific fields
 
 ### 🚀 Migration Guide
 
 #### For Existing Deployments
 
-1. **Update Database:**
+1. **Update Code:**
    ```bash
-   cd backend
-   flask db migrate -m "Add user authentication"
-   flask db upgrade
+   git pull origin main
    ```
 
-2. **Set Environment Variables:**
+2. **Update Database:**
    ```bash
-   # Generate keys
-   python -c "import secrets; print(secrets.token_hex(32))"
-   
-   # Add to .env
-   JWT_SECRET_KEY=<generated-key>
-   SECRET_KEY=<generated-key>
+   cd backend
+   # For SQLite (development)
+   rm instance/vendors.db
+   python app.py
+
+   # For PostgreSQL (production)
+   # Option 1: Using Flask-Migrate
+   flask db migrate -m "Add track items and inspections"
+   flask db upgrade
+
+   # Option 2: Manual SQL (if needed)
+   # See database schema in documentation
    ```
 
 3. **Update Dependencies:**
    ```bash
+   cd backend
    pip install -r requirements.txt
+
+   cd frontend
+   npm install
    ```
 
-4. **Create Admin User:**
-   - Default admin created automatically
-   - Username: `admin`
-   - Password: `Admin@123`
-   - **⚠️ CHANGE IMMEDIATELY!**
+4. **Seed Sample Data (Optional):**
+   ```bash
+   # Login to get token
+   curl -X POST http://localhost:5000/api/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{"username": "admin", "password": "Admin@123"}'
 
-5. **Update Frontend:**
-   - Add login/register pages
-   - Store JWT tokens
-   - Include token in API requests
+   # Use token to seed data
+   curl -X POST http://localhost:5000/api/seed \
+     -H "Authorization: Bearer YOUR_TOKEN"
+   ```
 
-### 🐛 Known Issues
-
-1. **Frontend Auth Integration**
-   - Frontend needs update to use JWT auth
-   - Login/register pages needed
-   - Token storage and refresh logic needed
-
-2. **Camera Access**
-   - Requires HTTPS in production
-   - Some browsers may block camera on non-HTTPS
-
-### 🔜 Future Enhancements (Planned)
-
-#### Phase 2 (Next Sprint)
-- [ ] Frontend authentication integration
-- [ ] Password reset functionality
-- [ ] Email verification
-- [ ] Two-factor authentication (2FA)
-- [ ] User profile management UI
-
-#### Phase 3
-- [ ] Bulk vendor import (CSV/Excel)
-- [ ] Document upload and verification
-- [ ] Email notifications
-- [ ] Advanced search and filters
-- [ ] Export to PDF/Excel
-
-#### Phase 4
-- [ ] ML-based risk assessment
-- [ ] OCR for document verification
-- [ ] GST/PAN API integration
-- [ ] Mobile app (React Native)
-- [ ] Progressive Web App (PWA)
+5. **Rebuild Frontend:**
+   ```bash
+   cd frontend
+   npm run build
+   ```
 
 ### 📊 Statistics
 
-- **Lines of Code Added:** ~2,500+
-- **New Endpoints:** 8
-- **New Models:** 1 (User)
-- **Test Coverage:** ~75% (target: 80%+)
-- **Security Score:** A+ (OWASP compliance)
+- **Lines of Code Added:** ~3,500+
+- **New Endpoints:** 15+
+- **New Models:** 2 (TrackItem, Inspection)
+- **New Frontend Pages:** 6
+- **Test Coverage:** ~75%+ (target: 80%+)
 
-### 🙏 Acknowledgments
+### 🔜 Future Enhancements (Planned)
 
-- Smart India Hackathon 2024-25
-- Flask and React communities
-- OWASP security guidelines
+#### Phase 3 (Next Sprint)
+- [ ] Bulk track item import (CSV/Excel)
+- [ ] Document upload and management
+- [ ] Email notifications for warranty expiry
+- [ ] Advanced search and filters
+- [ ] Export reports to PDF/Excel
+- [ ] Mobile app for field inspections
+
+#### Phase 4
+- [ ] ML-based defect prediction
+- [ ] OCR for document verification
+- [ ] Integration with railway systems
+- [ ] Real-time tracking dashboard
+- [ ] Progressive Web App (PWA)
+- [ ] Offline mode for field inspections
+
+#### Phase 5
+- [ ] GPS integration for location tracking
+- [ ] IoT sensor integration for condition monitoring
+- [ ] Predictive maintenance scheduling
+- [ ] Advanced analytics with ML
+- [ ] Integration with GST/PAN APIs
+
+### 🐛 Known Issues
+
+1. **Camera Access**
+   - Requires HTTPS in production
+   - Some browsers may block camera on non-HTTPS sites
+
+2. **Frontend Auth Integration**
+   - Token refresh works but could be more robust
+   - Consider moving to httpOnly cookies for better security
+
+3. **Database Migrations**
+   - Flask-Migrate not fully configured
+   - Manual migration may be needed for production
+
+---
+
+## [1.5.0] - 2024-03-17
+
+### 🔐 Security Features (ENHANCED)
+
+#### Authentication System
+- JWT-based authentication with Flask-JWT-Extended
+- User registration and login endpoints
+- Refresh token mechanism
+- Password hashing with bcrypt (12 salt rounds)
+- Role-based access control (Admin, User, Viewer)
+
+#### Rate Limiting
+- Flask-Limiter integration
+- Configurable rate limits per endpoint
+- Redis support for production scaling
+
+#### Input Validation
+- Comprehensive validation utilities
+- Email, phone, GST, PAN, bank account validation
+- Input sanitization
+- XSS and SQL injection prevention
+
+### 🧪 Testing Infrastructure
+- Pytest test suite
+- Test fixtures and factories
+- Coverage reporting
+- Tests for auth, vendors, QR operations
+
+### 🐳 Production Docker
+- Multi-stage Dockerfile
+- Production Docker Compose
+- Nginx reverse proxy
+- Redis for rate limiting
 
 ---
 
@@ -264,7 +333,21 @@ All notable changes to the QR-Based Vendor Verification System.
 
 ---
 
-**Version Format:** [MAJOR.MINOR.PATCH]
+## Version Format
+
+**MAJOR.MINOR.PATCH**
 - **MAJOR:** Breaking changes
 - **MINOR:** New features (backward compatible)
 - **PATCH:** Bug fixes (backward compatible)
+
+### Migration Notes
+
+- Always backup database before updating
+- Test in development environment first
+- Review CHANGELOG for breaking changes
+- Update dependencies carefully
+
+---
+
+**Last Updated: March 2026**
+*Version: 2.0.0*
