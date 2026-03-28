@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { vendorAPI } from '../api';
+import { vendorAPI, exportAPI } from '../api';
 
 function VendorDetail() {
   const { id } = useParams();
@@ -49,6 +49,26 @@ function VendorDetail() {
       link.remove();
     } catch (err) {
       alert('Failed to download QR code');
+    }
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      const response = await exportAPI.vendorPDF(id);
+      const blob = response.data;
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
+      link.setAttribute('download', `vendor_${id}_report_${timestamp}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      alert('PDF exported successfully!');
+    } catch (err) {
+      console.error('Export failed:', err);
+      alert('Failed to export PDF. Please try again.');
     }
   };
 
@@ -116,6 +136,9 @@ function VendorDetail() {
       <div className="flex flex-between flex-center mb-3">
         <h1>Vendor Details</h1>
         <div className="flex gap-2">
+          <button onClick={handleExportPDF} className="btn btn-secondary">
+            <span>📄</span> Export PDF
+          </button>
           <Link to="/vendors" className="btn btn-secondary">
             ← Back
           </Link>

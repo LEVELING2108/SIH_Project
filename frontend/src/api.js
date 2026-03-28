@@ -147,6 +147,13 @@ export const trackItemsAPI = {
     api.get('/track-items/analytics'),
   getExceptions: () =>
     api.get('/track-items/exceptions'),
+  exportCSV: (filters = {}) => {
+    let url = '/export/track-items/csv?';
+    if (filters.item_type) url += `&item_type=${filters.item_type}`;
+    if (filters.status) url += `&status=${filters.status}`;
+    if (filters.vendor_id) url += `&vendor_id=${filters.vendor_id}`;
+    return api.get(url, { responseType: 'blob' });
+  },
 };
 
 // Inspections API
@@ -155,6 +162,20 @@ export const inspectionsAPI = {
     api.get(`/track-items/${itemId}/inspections`),
   create: (itemId, data) =>
     api.post(`/track-items/${itemId}/inspections`, data),
+};
+
+// Export API
+export const exportAPI = {
+  vendorsCSV: (filters = {}) => {
+    let url = '/export/vendors/csv?';
+    if (filters.item_type) url += `&item_type=${filters.item_type}`;
+    if (filters.status) url += `&status=${filters.status}`;
+    return api.get(url, { responseType: 'blob' });
+  },
+  vendorPDF: (vendorId) =>
+    api.get(`/export/vendors/${vendorId}/pdf`, { responseType: 'blob' }),
+  trackItemPDF: (itemId) =>
+    api.get(`/export/track-items/${itemId}/pdf`, { responseType: 'blob' }),
 };
 
 // Auth API

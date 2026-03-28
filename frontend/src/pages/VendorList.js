@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { vendorAPI } from '../api';
+import { vendorAPI, exportAPI } from '../api';
 
 function VendorList() {
   const role = localStorage.getItem('role');
@@ -37,7 +37,7 @@ function VendorList() {
       } catch (err) {
         const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Failed to delete vendor';
         const statusCode = err.response?.status;
-        
+
         if (statusCode === 403) {
           alert('❌ Access Denied: You need admin privileges to delete vendors.');
         } else if (statusCode === 401) {
@@ -51,6 +51,26 @@ function VendorList() {
         console.error('Delete error:', err);
         console.error('Error response:', err.response);
       }
+    }
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      const response = await exportAPI.vendorsCSV();
+      const blob = response.data;
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
+      link.setAttribute('download', `vendors_export_${timestamp}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      alert('Export successful!');
+    } catch (err) {
+      console.error('Export failed:', err);
+      alert('Failed to export. Please try again.');
     }
   };
 
@@ -91,8 +111,8 @@ function VendorList() {
         </div>
       )}
       <div className="flex flex-between flex-center mb-3">
-        <h1 style={{ 
-          fontSize: '2rem', 
+        <h1 style={{
+          fontSize: '2rem',
           fontWeight: '800',
           background: 'var(--gradient-primary)',
           WebkitBackgroundClip: 'text',
@@ -101,9 +121,14 @@ function VendorList() {
         }}>
           👥 Vendors
         </h1>
-        <Link to="/add" className="btn btn-primary">
-          <span>➕</span> Add Vendor
-        </Link>
+        <div className="flex gap-2">
+          <button onClick={handleExportCSV} className="btn btn-secondary">
+            <span>📊</span> Export CSV
+          </button>
+          <Link to="/add" className="btn btn-primary">
+            <span>➕</span> Add Vendor
+          </Link>
+        </div>
       </div>
 
       {vendors.length === 0 ? (
