@@ -1,13 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../api';
+import { PasswordStrengthIndicator, usePasswordStrength } from '../utils/passwordStrength';
 
 function Profile() {
   const navigate = useNavigate();
+  const { validatePassword } = usePasswordStrength();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [tokenInfo, setTokenInfo] = useState(null);
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordChangeLoading, setPasswordChangeLoading] = useState(false);
+  const [passwordChangeMessage, setPasswordChangeMessage] = useState(null);
 
   useEffect(() => {
     fetchCurrentUser();
@@ -47,6 +57,42 @@ function Profile() {
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('role');
     navigate('/login');
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    setPasswordChangeMessage(null);
+
+    // Validate passwords
+    const newPasswordValidation = validatePassword(passwordData.newPassword);
+    if (!newPasswordValidation.isValid) {
+      setPasswordChangeMessage({
+        type: 'error',
+        text: `Password too weak: ${newPasswordValidation.errors.join('; ')}`
+      });
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordChangeMessage({ type: 'error', text: 'Passwords do not match' });
+      return;
+    }
+
+    setPasswordChangeLoading(true);
+
+    try {
+      await authAPI.put('/auth/me', { password: passwordData.newPassword });
+      setPasswordChangeMessage({ type: 'success', text: 'Password changed successfully!' });
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setShowPasswordChange(false);
+    } catch (err) {
+      setPasswordChangeMessage({
+        type: 'error',
+        text: err.response?.data?.message || 'Failed to change password'
+      });
+    } finally {
+      setPasswordChangeLoading(false);
+    }
   };
 
   if (loading) {
@@ -221,6 +267,82 @@ function Profile() {
       </div>
 
       {/* Actions */}
+      <div className="card">
+        <div className="card-header">
+          <span>🔑</span> Change Password
+        </div>
+        
+        {!showPasswordChange ? (
+          <div style={{ padding: '1rem' }}>
+            <p style={{ color: 'var(--slate-600)', marginBottom: '1rem' }}>
+              Update your password to keep your account secure
+            </p>
+            <button
+              onClick={() => setShowPasswordChange(true)}
+              className="btn btn-primary"
+            >
+              <span>🔐</span> Change Password
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handlePasswordChange} style={{ padding: '1rem' }}>
+            {passwordChangeMessage && (
+              <div className={`alert alert-${passwordChangeMessage.type === 'error' ? 'danger' : 'success'} mb-3`}>
+                {passwordChangeMessage.text}
+              </div>
+            )}
+            
+            <div className="form-group">
+              <label className="form-label">New Password</label>
+              <input
+                type="password"
+                className="form-control"
+                value={passwordData.newPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                placeholder="Enter new password"
+                required
+                disabled={passwordChangeLoading}
+              />
+              <PasswordStrengthIndicator password={passwordData.newPassword} />
+            </div>
+            
+            <div className="form-group">
+              <label className="form-label">Confirm Password</label>
+              <input
+                type="password"
+                className="form-control"
+                value={passwordData.confirmPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                placeholder="Confirm new password"
+                required
+                disabled={passwordChangeLoading}
+              />
+            </div>
+            
+            <div className="flex gap-2 mt-3">
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={passwordChangeLoading}
+              >
+                {passwordChangeLoading ? 'Changing...' : 'Change Password'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowPasswordChange(false);
+                  setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                  setPasswordChangeMessage(null);
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+
       <div className="flex gap-2 mt-3">
         <button onClick={() => navigate('/')} className="btn btn-secondary">
           <span>🏠</span> Back to Dashboard

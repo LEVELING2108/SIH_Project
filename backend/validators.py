@@ -1,7 +1,9 @@
 """
 Input validation and sanitization utilities
+Enhanced Security for Phase 3
 """
 import re
+import html
 from functools import wraps
 from flask import request, jsonify
 from werkzeug.exceptions import BadRequest
@@ -28,6 +30,86 @@ IFSC_REGEX = re.compile(r'^[A-Z]{4}0[A-Z0-9]{6}$')
 # Postal code validation (Indian PIN)
 PINCODE_REGEX = re.compile(r'^[1-9][0-9]{5}$')
 
+# Password strength validation
+PASSWORD_STRENGTH_REGEX = {
+    'min_length': re.compile(r'^.{8,}$'),
+    'uppercase': re.compile(r'[A-Z]'),
+    'lowercase': re.compile(r'[a-z]'),
+    'digit': re.compile(r'[0-9]'),
+    'special': re.compile(r'[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\;\'`~]')
+}
+
+
+def validate_password_strength(password):
+    """
+    Validate password strength
+    Returns tuple: (is_valid, errors, strength_score)
+    Requirements:
+    - Minimum 8 characters
+    - At least one uppercase letter
+    - At least one lowercase letter
+    - At least one digit
+    - At least one special character
+    
+    Strength Score:
+    - 0-40: Weak
+    - 41-70: Medium
+    - 71-100: Strong
+    """
+    errors = []
+    score = 0
+    
+    if not password:
+        return False, ["Password is required"], 0
+    
+    # Check minimum length
+    if len(password) < 8:
+        errors.append("Password must be at least 8 characters")
+    else:
+        score += 20
+        if len(password) >= 12:
+            score += 10
+        if len(password) >= 16:
+            score += 10
+    
+    # Check for uppercase
+    if PASSWORD_STRENGTH_REGEX['uppercase'].search(password):
+        score += 15
+    else:
+        errors.append("Password must contain at least one uppercase letter")
+    
+    # Check for lowercase
+    if PASSWORD_STRENGTH_REGEX['lowercase'].search(password):
+        score += 15
+    else:
+        errors.append("Password must contain at least one lowercase letter")
+    
+    # Check for digit
+    if PASSWORD_STRENGTH_REGEX['digit'].search(password):
+        score += 15
+    else:
+        errors.append("Password must contain at least one number")
+    
+    # Check for special character
+    if PASSWORD_STRENGTH_REGEX['special'].search(password):
+        score += 15
+    else:
+        errors.append("Password must contain at least one special character (!@#$%^&*...)")
+    
+    # Check for common passwords
+    common_passwords = ['password', '123456', 'qwerty', 'admin', 'letmein', 'welcome', 'monkey', 'dragon']
+    if password.lower() in common_passwords:
+        errors.append("Password is too common. Please choose a stronger password")
+        score = max(0, score - 30)
+    
+    # Check for sequential characters
+    if re.search(r'(012|123|234|345|456|567|678|789|890|abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)', password.lower()):
+        score = max(0, score - 10)
+    
+    strength_level = 'weak' if score <= 40 else 'medium' if score <= 70 else 'strong'
+    
+    return len(errors) == 0, errors, min(100, score), strength_level
+
 
 def sanitize_string(value, max_length=255):
     """
@@ -38,39 +120,72 @@ def sanitize_string(value, max_length=255):
     """
     if value is None:
         return None
-    
+
     if not isinstance(value, str):
         value = str(value)
-    
+
     # Strip whitespace
     value = value.strip()
-    
+
     # Remove null bytes
     value = value.replace('\x00', '')
-    
+
     # Limit length
     if len(value) > max_length:
         value = value[:max_length]
-    
+
     return value
 
 
 def sanitize_html(value):
     """
-    Remove potentially dangerous HTML tags
-    Simple sanitization - for production, use bleach library
+    Remove potentially dangerous HTML tags and scripts
+    Enhanced sanitization for XSS prevention
+    """
+    if value is None:
+        return None
+
+    # First escape all HTML entities
+    value = html.escape(value)
+
+    # Remove script tags and content
+    value = re.sub(r'<script\b[^>]*>.*?</script>', '', value, flags=re.IGNORECASE | re.DOTALL)
+
+    # Remove other potentially dangerous tags
+    dangerous_tags = ['iframe', 'object', 'embed', 'form', 'input', 'button', 'link', 'meta', 'style']
+    for tag in dangerous_tags:
+        value = re.sub(f'<{tag}\b[^>]*>.*?</{tag}>', '', value, flags=re.IGNORECASE | re.DOTALL)
+        value = re.sub(f'<{tag}\b[^>]*/?>', '', value, flags=re.IGNORECASE)
+
+    # Remove javascript: protocol
+    value = re.sub(r'javascript:', '', value, flags=re.IGNORECASE)
+    
+    # Remove on* event handlers
+    value = re.sub(r'\s+on\w+\s*=\s*["\'][^"\']*["\']', '', value, flags=re.IGNORECASE)
+
+    return value
+
+
+def sanitize_sql_input(value):
+    """
+    Sanitize input to prevent SQL injection
+    Note: SQLAlchemy ORM provides protection, but this adds extra layer
     """
     if value is None:
         return None
     
-    # Remove script tags and content
-    value = re.sub(r'<script\b[^>]*>.*?</script>', '', value, flags=re.IGNORECASE | re.DOTALL)
+    if not isinstance(value, str):
+        return value
     
-    # Remove other potentially dangerous tags
-    dangerous_tags = ['iframe', 'object', 'embed', 'form', 'input', 'button']
-    for tag in dangerous_tags:
-        value = re.sub(f'<{tag}\b[^>]*>.*?</{tag}>', '', value, flags=re.IGNORECASE | re.DOTALL)
-        value = re.sub(f'<{tag}\b[^>]*/?>', '', value, flags=re.IGNORECASE)
+    # Remove common SQL injection patterns
+    sql_patterns = [
+        r'(\b(SELECT|INSERT|UPDATE|DELETE|DROP|UNION|ALTER|CREATE|TRUNCATE)\b)',
+        r'(--|#|/\*)',
+        r'(\b(OR|AND)\b\s+\d+\s*=\s*\d+)',
+    ]
+    
+    for pattern in sql_patterns:
+        value = re.sub(pattern, '', value, flags=re.IGNORECASE)
     
     return value
 

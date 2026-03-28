@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { trackItemsAPI } from '../api';
+import { trackItemsAPI, exportAPI } from '../api';
 
 function TrackItemDetail() {
   const { id } = useParams();
@@ -44,6 +44,26 @@ function TrackItemDetail() {
       console.error('Failed to load QR code', err);
     }
   }, [id]);
+
+  const handleExportPDF = async () => {
+    try {
+      const response = await exportAPI.trackItemPDF(id);
+      const blob = response.data;
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
+      link.setAttribute('download', `track_item_${id}_report_${timestamp}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      alert('PDF exported successfully!');
+    } catch (err) {
+      console.error('Export failed:', err);
+      alert('Failed to export PDF. Please try again.');
+    }
+  };
 
   useEffect(() => {
     fetchItemDetails();
@@ -92,12 +112,21 @@ function TrackItemDetail() {
           </h1>
           <p style={{ color: '#888', margin: 0 }}>Lot: {item.lot_number}</p>
         </div>
-        <button
-          className="btn btn-secondary"
-          onClick={() => navigate('/track-items')}
-        >
-          ← Back to List
-        </button>
+        <div className="flex gap-2">
+          <button
+            className="btn btn-secondary"
+            onClick={handleExportPDF}
+            title="Export to PDF"
+          >
+            <span>📄</span> Export PDF
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => navigate('/track-items')}
+          >
+            ← Back to List
+          </button>
+        </div>
       </div>
 
       {/* AI Analysis Alert */}

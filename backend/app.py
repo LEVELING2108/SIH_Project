@@ -22,6 +22,7 @@ from insights import build_vendor_insights
 from config import Config
 from auth import auth_bp, role_required
 from track_items_routes import track_items_bp
+from exports import exports_bp
 
 
 def create_app(config_class=Config):
@@ -114,6 +115,7 @@ def create_app(config_class=Config):
     # Register blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(track_items_bp)
+    app.register_blueprint(exports_bp)
 
     # ============== Vendor API Endpoints ==============
 

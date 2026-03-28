@@ -43,6 +43,11 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), default='user', nullable=False)  # admin, user, viewer
     is_active = db.Column(db.Boolean, default=True, nullable=False)
+    
+    # Account lockout fields for security
+    failed_login_attempts = db.Column(db.Integer, default=0, nullable=False)
+    locked_until = db.Column(db.DateTime, nullable=True)
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     last_login = db.Column(db.DateTime)
@@ -57,9 +62,36 @@ class User(db.Model):
         return bcrypt.checkpw(password.encode('utf-8'), self.password_hash.encode('utf-8'))
 
     def update_last_login(self):
-        """Update last login timestamp"""
+        """Update last login timestamp and reset failed attempts"""
         self.last_login = datetime.utcnow()
+        self.failed_login_attempts = 0
+        self.locked_until = None
         db.session.commit()
+    
+    def record_failed_login(self):
+        """Record a failed login attempt"""
+        from datetime import timedelta
+        self.failed_login_attempts += 1
+        
+        # Lock account after 5 failed attempts
+        if self.failed_login_attempts >= 5:
+            self.locked_until = datetime.utcnow() + timedelta(minutes=15)
+        
+        db.session.commit()
+    
+    def is_locked(self):
+        """Check if account is locked"""
+        if self.locked_until is None:
+            return False
+        
+        if datetime.utcnow() > self.locked_until:
+            # Lock expired, reset
+            self.failed_login_attempts = 0
+            self.locked_until = None
+            db.session.commit()
+            return False
+        
+        return True
 
     def to_dict(self):
         """Convert user to dictionary (excluding sensitive data)"""

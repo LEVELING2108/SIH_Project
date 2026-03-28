@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { trackItemsAPI } from '../api';
+import { trackItemsAPI, exportAPI } from '../api';
 
 function TrackItemsList() {
   const navigate = useNavigate();
@@ -71,6 +71,26 @@ function TrackItemsList() {
     setPage(1);
   };
 
+  const handleExportCSV = async () => {
+    try {
+      const response = await trackItemsAPI.exportCSV(filters);
+      const blob = response.data;
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
+      link.setAttribute('download', `track_items_export_${timestamp}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      alert('Export successful!');
+    } catch (err) {
+      console.error('Export failed:', err);
+      alert('Failed to export. Please try again.');
+    }
+  };
+
   const getStatusBadgeClass = (status) => {
     switch (status) {
       case 'in_service': return 'badge-success';
@@ -94,8 +114,8 @@ function TrackItemsList() {
   return (
     <div>
       <div className="flex justify-between align-center mb-3">
-        <h1 style={{ 
-          fontSize: '2rem', 
+        <h1 style={{
+          fontSize: '2rem',
           fontWeight: '800',
           background: 'var(--gradient-primary)',
           WebkitBackgroundClip: 'text',
@@ -104,12 +124,21 @@ function TrackItemsList() {
         }}>
           🛤️ Track Fittings & Components
         </h1>
-        <button
-          className="btn btn-primary"
-          onClick={() => navigate('/track-items/add')}
-        >
-          <span>➕</span> Add Track Item
-        </button>
+        <div className="flex gap-2">
+          <button
+            className="btn btn-secondary"
+            onClick={handleExportCSV}
+            title="Export to CSV"
+          >
+            <span>📊</span> Export CSV
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={() => navigate('/track-items/add')}
+          >
+            <span>➕</span> Add Track Item
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
